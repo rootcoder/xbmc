@@ -498,7 +498,9 @@ bool CDVDVideoCodecAndroidMediaCodec::Open(CDVDStreamInfo &hints, CDVDCodecOptio
       m_mime = "video/hevc";
       m_formatname = "amc-hevc";
 
-      bool isDvhe = (m_hints.codec_tag == MKTAG('d', 'v', 'h', 'e'));
+      bool isDvhe = (m_hints.codec_tag == MKTAG('d', 'v', 'h', 'e') ||
+                     m_hints.codec_tag == MKBETAG('d', 'v', 'c', 'C') ||
+                     m_hints.codec_tag == MKBETAG('d', 'v', 'v', 'C'));
       bool isDvh1 = (m_hints.codec_tag == MKTAG('d', 'v', 'h', '1'));
 
       if (isDvhe || isDvh1)
@@ -1171,7 +1173,7 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecAndroidMediaCodec::GetPicture(VideoPictur
     // try to fetch an input buffer
     if (m_indexInputBuffer < 0)
     {
-      m_indexInputBuffer = m_codec->dequeueInputBuffer(5000 /*timeout*/);
+      m_indexInputBuffer = m_codec->dequeueInputBuffer(10000 /*timeout*/);
       if (xbmc_jnienv()->ExceptionCheck())
       {
         xbmc_jnienv()->ExceptionDescribe();
@@ -1464,7 +1466,7 @@ bool CDVDVideoCodecAndroidMediaCodec::ConfigureMediaCodec(void)
 int CDVDVideoCodecAndroidMediaCodec::GetOutputPicture(void)
 {
   int rtn = 0;
-  int64_t timeout_us = (m_state == MEDIACODEC_STATE_WAIT_ENDOFSTREAM) ? 100000 : 10000;
+  int64_t timeout_us = (m_state == MEDIACODEC_STATE_WAIT_ENDOFSTREAM) ? 1000000 : 10000;
   CJNIMediaCodecBufferInfo bufferInfo;
 
   ssize_t index = m_codec->dequeueOutputBuffer(bufferInfo, timeout_us);
