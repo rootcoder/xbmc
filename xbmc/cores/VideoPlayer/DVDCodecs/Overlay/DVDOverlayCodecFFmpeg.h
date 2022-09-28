@@ -10,11 +10,13 @@
 
 #include "DVDOverlayCodec.h"
 
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
 }
 
+#include <vector>
 class CDVDOverlaySpu;
 class CDVDOverlayText;
 
@@ -39,4 +41,5 @@ private:
 
   int             m_width;
   int             m_height;
+  std::vector<uint8_t> m_buffer;
 };
