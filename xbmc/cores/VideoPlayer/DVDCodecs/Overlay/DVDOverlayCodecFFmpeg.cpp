@@ -16,6 +16,10 @@
 #include "utils/log.h"
 #include "windowing/GraphicContext.h"
 
+constexpr uint8_t header[] = { 0x0f, 0x14, 0, 0x02, 0, 0x05, 0xf7, 0x02, 0xcf, 0x01, 0xdf };
+constexpr int headerSize = sizeof(header);
+
+
 CDVDOverlayCodecFFmpeg::CDVDOverlayCodecFFmpeg() : CDVDOverlayCodec("FFmpeg Subtitle Decoder")
 {
   m_pCodecContext = NULL;
@@ -135,8 +139,21 @@ OverlayMessage CDVDOverlayCodecFFmpeg::Decode(DemuxPacket* pPacket)
     return OverlayMessage::OC_ERROR;
   }
 
-  avpkt->data = pPacket->pData;
-  avpkt->size = pPacket->iSize;
+  uint8_t *curData = pPacket->pData;
+  int curSize = pPacket->iSize;
+
+
+  if (m_pCodecContext->codec_id == AV_CODEC_ID_DVB_SUBTITLE && curSize > 197 && curData[1] == 0x10) {
+    m_buffer.resize(headerSize + curSize + AV_INPUT_BUFFER_PADDING_SIZE);
+    memcpy(m_buffer.data(), header, headerSize);
+    memcpy(m_buffer.data() + headerSize, curData, curSize);
+    curData = m_buffer.data();
+    curSize = headerSize + curSize;
+  }
+
+  avpkt->data = curData;
+  avpkt->size = curSize;
+
   avpkt->pts = pPacket->pts == DVD_NOPTS_VALUE ? AV_NOPTS_VALUE : (int64_t)pPacket->pts;
   avpkt->dts = pPacket->dts == DVD_NOPTS_VALUE ? AV_NOPTS_VALUE : (int64_t)pPacket->dts;
 
