@@ -3361,6 +3361,13 @@ void CVideoPlayer::SetSubtitleVisible(bool bVisible)
   m_messenger.Put(
       std::make_shared<CDVDMsgBool>(CDVDMsg::PLAYER_SET_SUBTITLESTREAM_VISIBLE, bVisible));
   m_processInfo->GetVideoSettingsLocked().SetSubtitleVisible(bVisible);
+  if (bVisible) {
+    int index = m_SelectionStreams.TypeIndexOf(STREAM_SUBTITLE, m_CurrentSubtitle.source, m_CurrentSubtitle.demuxerId, m_CurrentSubtitle.id);
+    if (index != -1) {
+      m_processInfo->GetVideoSettingsLocked().SetSubtitleStream(index);
+    }
+  }
+
 }
 
 void CVideoPlayer::SetSubtitleVisibleInternal(bool bVisible)
